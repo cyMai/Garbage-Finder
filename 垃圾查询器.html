@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>垃圾分类查询</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .textbox {
+            flex: 1;
+            height: 45px;
+            padding: 0 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .textbox:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .button {
+            padding: 0 25px;
+            height: 45px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">垃圾分类查询</h1>
+        <div class="search-box">
+            <input id="rubbish" class="textbox" type="text" placeholder="请输入要查询的物品..." />
+            <button class="button" onclick="showR()">查询</button>
+        </div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script type="text/javascript">
+        function showR() {
+            let rubbish = $("#rubbish").val();
+            if (!rubbish) {
+                showResult('请输入要查询的物品');
+                return;
+            }
+
+            const data = {
+                'name': rubbish,
+                'app_id': 'njmotaokmdcmnkhm',
+                'app_secret': 'OUlucnBSQnVaMUpiNUdPL1JLNVFsQT09'
+            };
+
+            let p = new Promise((resolve, reject) => {
+                $.getJSON(
+                    "https://www.mxnzp.com/api/rubbish/type",
+                    data,
+                    (data, status, xhr) => {
+                        if (status == 'success') {
+                            resolve(data)
+                        } else {
+                            reject(new Error("失败，status:" + status))
+                        }
+                    }
+                )
+            })
+
+            p.then(
+                res => {
+                    showResult(`${res.data.aim.goodsName} 属于 ${res.data.aim.goodsType}`);
+                }
+            ).catch(
+                err => {
+                    showResult("抱歉，未能找到该物品的分类信息");
+                }
+            )
+        }
+
+        function showResult(message) {
+            const resultDiv = $("#result");
+            resultDiv.html(message);
+            resultDiv.removeClass('show');
+            // 触发重排以重新启动动画
+            void resultDiv[0].offsetWidth;
+            resultDiv.addClass('show');
+        }
+
+        // 添加回车键触发查询
+        $("#rubbish").keypress(function(e) {
+            if (e.which == 13) {
+                showR();
+            }
+        });
+    </script>
+</body>
+
+</html>
